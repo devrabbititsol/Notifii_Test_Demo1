@@ -1,11 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
-<suite name="Main Test Suite" parallel="tests">	
-	<test name="chrometest">
-  	<parameter name="browser" value="chrome"/>
-		<classes>
-			<class name="web.test_notifii_demo.web_module.webtestclasses.TC_Notifii" />
-			<class name="com.fileupload.ReportUpload" />
-		</classes>
-	</test>
+<suite name="Main Test Suite" verbose="1" >
+<test name="test">
+	<classes>		<class name= "api.test_notifii_demo.api_demo.apitestclasses.TC_CRUD_API" />		<class name="com.fileupload.ReportUpload" />
+	</classes>
+</test>
 </suite>
