@@ -1,0 +1,1 @@
+start /b /high java -jar D:\SQE_FW_Code\SmartQE\WebDrivers\code.jar "D:\SQE_FW_Code\SmartQE\WebDrivers\jsonData.json"
