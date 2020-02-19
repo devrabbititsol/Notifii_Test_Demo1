@@ -66,9 +66,9 @@ public class TC_Notifii extends BaseClass {
 	String text3 = objLogin_screen.clkbuttonLogIn_422225();
 		if(text3.equalsIgnoreCase(configFileObj.getProperty("LogIn"+ i + datasetScreencount))){
 			printSuccessLogAndReport(test, logger,  "Clicked on Button : " + configFileObj.getProperty("LogIn"+ i + datasetScreencount));
-			printSuccessLogAndReport(text3, test, logger,  "Validated Button Text : " + configFileObj.getProperty("LogIn"+ i + datasetScreencount));
+			printSuccessLogAndReport(test, logger,  "Validated Button Text : " + configFileObj.getProperty("LogIn"+ i + datasetScreencount));
 		} else {
-			printFailureLogAndReport(text3, test, logger,  "Text is displayed as : " + configFileObj.getProperty("LogIn"+ i + datasetScreencount));
+			printFailureLogAndReport(test, logger,  "Text is displayed as : " + configFileObj.getProperty("LogIn"+ i + datasetScreencount));
 		}
 
 	   } catch (Exception e) {
@@ -97,9 +97,9 @@ public class TC_Notifii extends BaseClass {
 	String text6 = objHome_screen.clkbuttonLogThisPackageIn_422314();
 		if(text6.equalsIgnoreCase(configFileObj.getProperty("LogThisPackageIn"+ i + datasetScreencount))){
 			printSuccessLogAndReport(test, logger,  "Clicked on Button : " + configFileObj.getProperty("LogThisPackageIn"+ i + datasetScreencount));
-			printSuccessLogAndReport(text6, test, logger,  "Validated Button Text : " + configFileObj.getProperty("LogThisPackageIn"+ i + datasetScreencount));
+			printSuccessLogAndReport(test, logger,  "Validated Button Text : " + configFileObj.getProperty("LogThisPackageIn"+ i + datasetScreencount));
 		} else {
-			printFailureLogAndReport(text6, test, logger,  "Text is displayed as : " + configFileObj.getProperty("LogThisPackageIn"+ i + datasetScreencount));
+			printFailureLogAndReport(test, logger,  "Text is displayed as : " + configFileObj.getProperty("LogThisPackageIn"+ i + datasetScreencount));
 		}
 
 	   } catch (Exception e) {
@@ -120,16 +120,16 @@ public class TC_Notifii extends BaseClass {
 		String text2 = objPackage_history_screen.clkaPackageHistory_422455();
 		if(text2.equalsIgnoreCase(configFileObj.getProperty("PackageHistory"+ i + datasetScreencount))){
 			printSuccessLogAndReport(test, logger,  "Clicked on : " + configFileObj.getProperty("PackageHistory"+ i + datasetScreencount));
-			printSuccessLogAndReport(text2, test, logger,  "Validated Link Text : " + configFileObj.getProperty("PackageHistory"+ i + datasetScreencount));
+			printSuccessLogAndReport(test, logger,  "Validated Link Text : " + configFileObj.getProperty("PackageHistory"+ i + datasetScreencount));
 		} else {
-			printFailureLogAndReport(text2, test, logger,  "Link Text is not displayed  : " + configFileObj.getProperty("PackageHistory"+ i + datasetScreencount));
+			printFailureLogAndReport(test, logger,  "Link Text is not displayed  : " + configFileObj.getProperty("PackageHistory"+ i + datasetScreencount));
 		}
 	String text3 = objPackage_history_screen.clkbuttonUpdatePackageHistory_422413();
 		if(text3.equalsIgnoreCase(configFileObj.getProperty("UpdatePackageHistory"+ i + datasetScreencount))){
 			printSuccessLogAndReport(test, logger,  "Clicked on Button : " + configFileObj.getProperty("UpdatePackageHistory"+ i + datasetScreencount));
-			printSuccessLogAndReport(text3, test, logger,  "Validated Button Text : " + configFileObj.getProperty("UpdatePackageHistory"+ i + datasetScreencount));
+			printSuccessLogAndReport(test, logger,  "Validated Button Text : " + configFileObj.getProperty("UpdatePackageHistory"+ i + datasetScreencount));
 		} else {
-			printFailureLogAndReport(text3, test, logger,  "Text is displayed as : " + configFileObj.getProperty("UpdatePackageHistory"+ i + datasetScreencount));
+			printFailureLogAndReport(test, logger,  "Text is displayed as : " + configFileObj.getProperty("UpdatePackageHistory"+ i + datasetScreencount));
 		}
 
 	   } catch (Exception e) {
