@@ -10,10 +10,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.configurations.Constants;
-import com.configurations.ExtentConfigurations;
-import com.relevantcodes.extentreports.ExtentTest;
-import com.relevantcodes.extentreports.LogStatus;
+import com.configurations.GlobalData;
+import com.utilities.ConfigFilesUtility;
 
 import io.restassured.response.Response;
 import io.restassured.response.ResponseBody;
@@ -21,18 +19,22 @@ import io.restassured.specification.RequestSpecification;
 
 public class APIService {
 
-	@SuppressWarnings("unused")
-	public static String callRequest(String primaryInfo, String urlParams, String headers, int requestType, int bodyType, String inputBody,
-			String datatsetHeader, String dataResources, ExtentTest test, Logger logger) {
+	private static JSONArray jsonArray;
+
+	@SuppressWarnings({ "unused", "static-access" })
+	public static String callRequest(ConfigFilesUtility con, String urlParams, String headers, int requestType, int bodyType, String inputBody,
+			String datatsetHeader, String dataResources,  Logger logger) {
 
 		String[] bodyTpes = new String[] { "", "form-data", "x-www-form-urlencoded", "raw" };
 		String[] types = new String[] { "", "GET", "POST", "PUT", "DELETE" };
 		String contentType = "";
-
+		JSONObject jsonoBj = new JSONObject();
+		jsonArray = new JSONArray();
+	
 		try {
-			Constants.iS_WEB = false;
-			Constants.IS_TESTCASE = false;
-			JSONObject jsonObject = new JSONObject(primaryInfo);
+			//Constants.iS_WEB = false;
+			//Constants.IS_TESTCASE = false;
+			JSONObject jsonObject = new JSONObject(con.getProperty("PrimaryInfo"));
 			String testCaseName = jsonObject.getString("testcase_name");
 			String projectName = jsonObject.optString("project_name");
 			String projectId = jsonObject.optString("project_id");
@@ -40,10 +42,16 @@ public class APIService {
 			String returnString = jsonObject.optString("returnString");
 			String packageFolder = jsonObject.optString("moduleName");
 			String type = types[requestType];
-			extentHeaderLog(test, datatsetHeader);
+			jsonoBj.put("testcase_name",testCaseName + "-" + datatsetHeader);
+			jsonoBj.put("datasets", jsonArray);
+			new GlobalData().reportData(testCaseName, jsonoBj);
+			new GlobalData().primaryInfoData(con);
+			//extentHeaderLog( datatsetHeader);
+			
 			String Url = jsonObject.optString("project_url") + dataResources;
 			//String format = jsonObject.optString("raw_type_format");
-			test.log(LogStatus.INFO, "<b style = 'background-color: #ffffff; color : #000000 ;' >" + Url + "</b>");
+			reportCreation("info",Url);
+			//test.log(LogStatus.INFO, "<b style = 'background-color: #ffffff; color : #000000 ;' >" + Url + "</b>");
 			
 			RequestSpecification requestSpec = given();
 
@@ -51,13 +59,15 @@ public class APIService {
 			JSONArray parameters = new JSONArray(urlParams);
 			JSONObject body = new JSONObject(inputBody);
 			int raw_id = body.optInt("raw_id");	 //content type
-			test.log(LogStatus.INFO, "Request Type :  " + type);
+			reportCreation("info","Request Type :  " + type);
+			//test.log(LogStatus.INFO, "Request Type :  " + type);
 			contentType = (raw_id == 5 ? "application/xml" : "application/json");
-			test.log(LogStatus.INFO, "Content Type :  " + contentType);
+			reportCreation("info", "Content Type :  " + contentType);
+			//test.log(LogStatus.INFO, "Content Type :  " + contentType);
 			logger.info("Request Type :  " + type);
 
 			if (headersJsonArray.length() > 0) {
-				extentReportLog(test, "Headers");
+				extentReportLog( "Headers");
 				logger.info("Headers :  " + headersJsonArray.toString());
 			} 
 			
@@ -65,12 +75,13 @@ public class APIService {
 				JSONObject headerObj = headersJsonArray.getJSONObject(i);
 				String headerkey = headerObj.getString("header_key");
 				String headerValue = headerObj.getString("header_value");
-				test.log(LogStatus.INFO, headerkey + " : "+ headerValue );
+				reportCreation("info", headerkey + " : "+ headerValue);
+				//test.log(LogStatus.INFO, headerkey + " : "+ headerValue );
 				requestSpec.header(headerkey, headerValue);
 			}
 			
 			if (parameters.length() > 0) {
-				extentReportLog(test, "Input Parameters");
+				extentReportLog( "Input Parameters");
 				logger.info("Parameters :  " + parameters.toString());
 			} 
 				
@@ -79,19 +90,22 @@ public class APIService {
 				if (requestType > 1) {
 					String key = parametersObj.getString("param_key");
 					String value = parametersObj.getString("param_value");
-					test.log(LogStatus.INFO, key + " : "+ value);
+					reportCreation("info", key + " : "+ value);
+					//test.log(LogStatus.INFO, key + " : "+ value);
 					requestSpec.queryParam(key, value);
 				} else {
 					String key = parametersObj.getString("param_key").replaceAll("\n", "");
 					String value = parametersObj.getString("param_value").replaceAll("\n", "");
-				test.log(LogStatus.INFO, key + " : "+ value);
+					reportCreation("info", key + " : "+ value);
+				//test.log(LogStatus.INFO, key + " : "+ value);
 					requestSpec.param(key, value);
 				}
 			}
 			
 			if (body.length() > 0) {
-				extentReportLog(test, "Input Body");
-				test.log(LogStatus.INFO, "body  :  " + body.toString());
+				extentReportLog( "Input Body");
+				reportCreation("info", "body  :  " + body.toString());
+				//test.log(LogStatus.INFO, "body  :  " + body.toString());
 				logger.info("body :  " + body.toString());
 			}
 			
@@ -119,7 +133,9 @@ public class APIService {
 				}
 
 			}
-			extentReportLog(test, "Output");
+			
+			
+			extentReportLog( "Output");
 			if (response != null) {	
 				@SuppressWarnings("rawtypes")
 				ResponseBody responseBody = response.getBody();
@@ -132,54 +148,66 @@ public class APIService {
 				 * "Correct status code returned");
 				 */
 				if (statusCode == 200 || statusCode == 201) {
-					test.log(LogStatus.PASS, testCaseName + " API status code is : " + statusCode);
+					reportCreation("pass", testCaseName + " API status code is : " + statusCode);
+					//test.log(LogStatus.PASS, testCaseName + " API status code is : " + statusCode);
 					logger.info(testCaseName + " API status code is :" + statusCode + " : " + responseString);
 					System.out.println(responseString);
-					Constants.testName = Constants.testName + " - PASS $";
-					ExtentConfigurations.passedDataSets = ExtentConfigurations.passedDataSets + 1;
+					//Constants.testName = Constants.testName + " - PASS $";
+					//ExtentConfigurations.passedDataSets = ExtentConfigurations.passedDataSets + 1;
 					return responseString;
 				} else if(statusCode == 400) {	
-					test.log(LogStatus.FAIL, responseString);
+					reportCreation("fail", responseString);
+					//test.log(LogStatus.FAIL, responseString);
 					logger.info("response :  " + responseString +"status :" + statusCode);
 					return responseString;				
 				} else if(statusCode == 404) {
-					test.log(LogStatus.FAIL, "Invalid response : <br><b>HTTP Status 404 � Not Found </b> <br/> <b>Message :</b> " + Url + "<br/><b>Description :</b> The origin server did not find a current representation for the target resource or is not willing to disclose that one exists");
+					
+					reportCreation("fail", "Invalid response : HTTP Status 404  Not Found ");
+					//test.log(LogStatus.FAIL, "Invalid response : <br><b>HTTP Status 404 � Not Found </b> <br/> <b>Message :</b> " + Url + "<br/><b>Description :</b> The origin server did not find a current representation for the target resource or is not willing to disclose that one exists");
 					logger.info("Invalid response body returned as :  " + responseString);
 				} else {
+					
 					logger.info("Invalid response body" + responseString);
 					if(contentType.equalsIgnoreCase("application/xml") && responseString.contains("<?xml")) {
-						test.log(LogStatus.FAIL, "Invalid response body" + responseString);
+						reportCreation("fail", "Invalid response body" + responseString);
+						//test.log(LogStatus.FAIL, "Invalid response body" + responseString);
 					} else {
-						test.log(LogStatus.FAIL, "Invalid XML : Response is in HTML content please check the logger file");
+						reportCreation("fail", "Response is in HTML content please check the logger file");
+						//test.log(LogStatus.FAIL, "Response is in HTML content please check the logger file");
 					}
 					if (isJSONValid(responseString)) {
-						test.log(LogStatus.FAIL, "Invalid response body" + responseString);
+						reportCreation("fail", "Invalid response body" + responseString);
+						//test.log(LogStatus.FAIL, "Invalid response body" + responseString);
 					} else {
-						test.log(LogStatus.FAIL, "Invalid JSON : Response is in HTML content please check the logger file");
+						reportCreation("fail", "Invalid JSON : Response is in HTML content please check the logger file");
+						//test.log(LogStatus.FAIL, "Invalid JSON : Response is in HTML content please check the logger file");
 					}
 				}
 				System.out.println(responseString);
 			}
 			
 		} catch (Exception e) {
-			extentReportLog(test, "Output");
+			extentReportLog( "Output");
 			String exception = e.getClass().getSimpleName() + "-" + e.getLocalizedMessage();
-			test.log(LogStatus.FAIL, "Invalid response : " + exception);
+			reportCreation("fail", "Invalid response : " + exception);
+			//test.log(LogStatus.FAIL, "Invalid response : " + exception);
 			logger.info("Invalid response body returned as :  " + exception);
 			e.printStackTrace();
 		}
-		ExtentConfigurations.failedDataSets = ExtentConfigurations.failedDataSets + 1;
-		Constants.testName = Constants.testName + " - FAIL $";
+		//ExtentConfigurations.failedDataSets = ExtentConfigurations.failedDataSets + 1;
+		//Constants.testName = Constants.testName + " - FAIL $";
 		return "";
 
 	}
 	
-	public static void extentReportLog(ExtentTest test ,String data) {
-		test.log(LogStatus.INFO, "<b style = 'background-color: #ffffff; color : #1976D2 ; font-size : 15px' >"+ data + "</b>");
+	public static void extentReportLog(String data) {
+		reportCreation("info", data);
+		//test.log(LogStatus.INFO, "<b style = 'background-color: #ffffff; color : #1976D2 ; font-size : 15px' >"+ data + "</b>");
 	}
 	
-	public static void extentHeaderLog(ExtentTest test ,String data) {
-		test.log(LogStatus.INFO, "<b style = 'background-color: #ffffff; color : #ff8f00 ; font-size : 18px' >"+ data + "</b>");
+	public static void extentHeaderLog(String data) {
+		reportCreation("info", data);
+		//test.log(LogStatus.INFO, "<b style = 'background-color: #ffffff; color : #ff8f00 ; font-size : 18px' >"+ data + "</b>");
 	}
 
 	
@@ -221,5 +249,14 @@ public class APIService {
 	        }
 	        return retBool;
 	    }
+	 
+	public static void reportCreation(String result, String data) {
+		JSONObject jsonObject = new JSONObject();
+		jsonObject.put("result_type", result);
+		jsonObject.put("text", data);
+		jsonArray.put(jsonObject);
+	}
+
+
 
 }

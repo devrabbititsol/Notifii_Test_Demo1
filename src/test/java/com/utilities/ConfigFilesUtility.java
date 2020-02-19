@@ -19,5 +19,10 @@ public class ConfigFilesUtility {
 		return prop.getProperty(propKey, "");
 	}
 	
+	public int getIntProperty(String propKey) {
+		String value =  prop.getProperty(propKey, "0");
+		return Integer.parseInt(value);
+	}
+	
 	
 }

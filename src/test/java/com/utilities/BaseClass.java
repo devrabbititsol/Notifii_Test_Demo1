@@ -1,13 +1,20 @@
 package com.utilities;
 
+import java.awt.Robot;
 import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
+import java.awt.event.KeyEvent;
 import java.io.File;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.openqa.selenium.Alert;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Dimension;
@@ -26,28 +33,28 @@ import org.openqa.selenium.support.ui.ExpectedCondition;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import org.openqa.selenium.winium.DesktopOptions;
+import org.openqa.selenium.winium.WiniumDriver;
 import org.testng.IRetryAnalyzer;
 import org.testng.ITestResult;
 
+import com.configurations.GlobalData;
 import com.relevantcodes.extentreports.ExtentReports;
 import com.relevantcodes.extentreports.ExtentTest;
 import com.relevantcodes.extentreports.LogStatus;
-import com.restassured.services.ReportPaths;
 
+import groovy.json.StringEscapeUtils;
 import io.appium.java_client.AppiumDriver;
 import io.appium.java_client.MobileElement;
 
 public class BaseClass {
 	public WebDriver driver;
-	
-	public static String projectPath = System.getProperty("user.dir");
-	public static String reportsPath = projectPath + File.separator + "WebReports" + File.separator + ReportPaths.reportPathName;
-	public static String desktopReportsPath = projectPath + File.separator + "DesktopReports" + File.separator + ReportPaths.reportPathName;
-	public static String mobileReportsPath = projectPath + File.separator + "MobileReports" + File.separator + ReportPaths.reportPathName;
+	public WiniumDriver winiumDriver;
 	private static boolean isElementDispalyed;
-	public String chromeDriverPath = projectPath + File.separator + "Resources" + File.separator + "chromedriver.exe";
-	public String geckoFireFoxDriverPath = projectPath + File.separator + "Resources" + File.separator + "geckodriver.exe";
-	public String iEDriverPath = projectPath + File.separator + File.separator + "Resources" + File.separator + "IEDriverServer.exe";
+	private String driversPath = System.getProperty("user.dir") + File.separator + "Resources" + File.separator;
+	private String chromeDriverPath = driversPath + "chromedriver.exe";
+	private String geckoFireFoxDriverPath = driversPath + "geckodriver.exe";
+	private String iEDriverPath = driversPath + "IEDriverServer.exe";
 	public AppiumDriver<MobileElement> appiumDriver;
 	public String text = "";
 	
@@ -63,6 +70,9 @@ public class BaseClass {
 		} catch (Exception e) {
 			System.out.println("");
 		}
+		
+		//Actions action = new Actions(driver);
+		//action.moveToElement(element).perform();
 		//isElementDispalyed = element.isDisplayed();
 		initialInputDataClear(element); // if any text in input it will clear
 		WebDriverWait wait = new WebDriverWait(driver, 20);
@@ -73,7 +83,7 @@ public class BaseClass {
 	public static String initialInputDataClear(WebElement webElement) {
 		String str = webElement.toString();
 		try {
-			if (str != null && str.contains("INPUT")) {
+			if (str != null && str.toUpperCase().contains("INPUT")) {
 			String[] listString = null;
 			if (str.contains("xpath")) {
 				listString = str.split("xpath:");
@@ -82,12 +92,12 @@ public class BaseClass {
 			}
 			String last = listString[1].trim();
 			String xpath = last.substring(0, last.length() - 1);
-			if (xpath != null && xpath.contains("INPUT")) {
+			if (xpath != null && str.toUpperCase().contains("INPUT")) {
 				webElement.clear();
 			}
 			}
 		} catch (Exception e) {
-			System.out.println("Not editable input");
+			//System.out.println("Not editable input");
 		}
 		return str;
 	}
@@ -161,15 +171,18 @@ public class BaseClass {
 	 * @return
 	 * @throws Exception
 	 */
-//	public WiniumDriver launchDesktopApp(String applicationexePath, String remoteWiniumDriverPath) throws Exception {
-//		DesktopOptions options = new DesktopOptions(); 
-//		options.setApplicationPath(applicationexePath); 
-//		winiumDriver = new WiniumDriver(new URL(remoteWiniumDriverPath), options);
-//		return winiumDriver;
-//	}
+	public WiniumDriver launchDesktopApp(String applicationexePath, String remoteWiniumDriverPath) throws Exception {
+		DesktopOptions options = new DesktopOptions(); 
+		options.setApplicationPath(applicationexePath); 
+		winiumDriver = new WiniumDriver(new URL(remoteWiniumDriverPath), options);
+		return winiumDriver;
+	}
 
+	
 	@SuppressWarnings("deprecation")
 	public WebDriver launchBrowser(String browserName, ConfigFilesUtility configFileObj) {
+		
+		GlobalData.primaryInfoData(configFileObj);
 		if (!isWindows()) {
 			if (isSolaris() || isUnix()) {
 				chromeDriverPath = chromeDriverPath.replace(".exe", "");
@@ -185,8 +198,8 @@ public class BaseClass {
 			
 			ChromeOptions options = new ChromeOptions();
 			Map<String, Object> prefs=new HashMap<String,Object>();
-			prefs.put("profile.default_content_setting_values.notifications", 1);
 			//1-Allow, 2-Block, 0-default
+			prefs.put("profile.default_content_setting_values.notifications", 1);
 			options.setExperimentalOption("prefs",prefs);
 			
 			if (isSolaris() || isUnix()) {
@@ -194,7 +207,6 @@ public class BaseClass {
 				options.addArguments("start-maximized"); // open Browser in maximized mode
 				options.addArguments("disable-infobars"); // disabling infobars
 				options.addArguments("--disable-extensions"); // disabling extensions
-				options.addArguments("--disable-gpu"); // applicable to windows os only
 				options.addArguments("--disable-dev-shm-usage"); // overcome limited resource problems
 				options.addArguments("--no-sandbox"); // Bypass OS security model
 				options.addArguments("--headless"); // this line makes run in linux environment with jenkins
@@ -289,117 +301,167 @@ public class BaseClass {
 		return (OS.indexOf("sunos") >= 0);
 	}
 
-	//===================== For Report ========================
-	public void testLogHeader(ExtentTest test, String data) {
-		if (test != null)
-			test.log(LogStatus.INFO, "<b style = 'background-color: #ffffff; color : #ff8f00 ; font-size : 18px' >" + data + "</b>");
-	}
+
+	// =================================================New style Reports========================================================
 	
-	public String setTestcaseName(String browserName, String tescaseName) {
-		
-		String chromeURL 	= "https://smartqe.io/pdownload/chrome.jpg";
-		String mozillaURL 	= "https://smartqe.io/pdownload/mozilla.jpg";
-		String ieURL 		= "https://smartqe.io/pdownload/ie.jpg";
-		String safariURL 	= "https://smartqe.io/pdownload/safari.jpg";
+	//===================== For Report ========================
+	JSONArray jsonArray;
+
+	//For Web
+	public void setTestcaseName(String browserName, String tescaseName) {
+		String chromeURL = "chrome";
+		String mozillaURL = "mozilla";
+		String ieURL =  "ie";
+		String safariURL = "safari";
 		String finalURL = "";
-		if(browserName.equalsIgnoreCase("chrome")) {
+		if (browserName.equalsIgnoreCase("chrome")) {
 			finalURL = chromeURL;
-		} else if(browserName.equalsIgnoreCase("mozilla")) {
+		} else if (browserName.equalsIgnoreCase("mozilla")) {
 			finalURL = mozillaURL;
-		} else if(browserName.equalsIgnoreCase("ie")) {
+		} else if (browserName.equalsIgnoreCase("ie")) {
 			finalURL = ieURL;
-		} else if(browserName.equalsIgnoreCase("safari")) {
+		} else if (browserName.equalsIgnoreCase("safari")) {
 			finalURL = safariURL;
 		}
-		return "<img style=\"-webkit-user-select: none;margin: auto; height:20px;width:20px;margin-right:10px;\" src=\"" + finalURL + "\" class=\"left\">" +  tescaseName +" </span>";
+		JSONObject jsonoBj = new JSONObject();
+		jsonArray = new JSONArray();
+		jsonoBj.put("browser_type",finalURL);
+		jsonoBj.put("testcase_name",tescaseName);
+		jsonoBj.put("datasets", jsonArray);
+		GlobalData.reportData(tescaseName, jsonoBj);
+		// testcaseObj.put(tescaseName, jsonArray);
+	}
+	
+	
+	
+
+	public void testLogHeader(String data) {
+		reportHeadersCreation("info", data);
 	}
 
-	public void printSuccessLogAndReport(ExtentTest test, Logger logger, String data) {
-		if (test != null) {
-			if(data.contains("Password") || data.contains("password")) {
-				//String[] passwordData = data.split(":");
-				//data = passwordData[0] + "****";
+	public void printSuccessLogAndReport(Logger logger, String data) {
+
+		reportCreation("pass", data);
+
+		try {
+			if (data.contains("satyanarayana bolli")) {
+
+				Robot robot = new Robot();
+				robot.keyPress(KeyEvent.VK_DOWN);
+				robot.keyRelease(KeyEvent.VK_DOWN);
+				robot.keyPress(KeyEvent.VK_ENTER);
+				robot.keyRelease(KeyEvent.VK_ENTER);
+				robot.delay(200);
+				}
+			if (data.contains("8142243634") || data.contains("9332") || data.contains("Ranga Swamy")) {
+
+				Robot robot = new Robot();
+				robot.keyPress(KeyEvent.VK_ENTER);
+				robot.keyRelease(KeyEvent.VK_ENTER);
+				robot.delay(200);
 			}
-			test.log(LogStatus.PASS, data);
+		} catch (Exception e) {
+			System.out.println("");
 		}
+
 		if (logger != null)
 			logger.info(data);
 	}
-	
-	public void printSuccessLogAndReport(String elementText, ExtentTest test, Logger logger, String data) {
-		if (test != null) {
-		if(data.contains("printMsg")) {
-			test.log(LogStatus.INFO, elementText);
+
+	public void printSuccessLogAndReport(String elementText, Logger logger, String data) {
+		if (data.contains("printMsg")) {
+			reportCreation("info", elementText);
 		} else {
-			test.log(LogStatus.PASS, data);
+			reportCreation("pass", data);
 		}
 		if (logger != null)
 			logger.info(elementText);
-		}
 	}
-	
 
-	public void printFailureLogAndReport(String elementText, ExtentTest test, Logger logger, String data) {
-		if (test != null)
-			if(data.contains("printMsg")) {
-			  test.log(LogStatus.INFO, elementText);
+	public void printFailureLogAndReport(String elementText, Logger logger, String data) {
+
+		if (data.contains("printMsg")) {
+			reportCreation("info", elementText);
+		} else {
+			String name = "";
+			if (data.toString().length() <= 20) {
+				name = data.toString();
 			} else {
-			  test.log(LogStatus.FAIL, data);
+				name = data.toString().substring(0, 10);
 			}
+			reportFailureCreation("fail", StringEscapeUtils.escapeJava(data),Utilities.captureScreenshot(driver, name));
+		}
 		if (logger != null)
 			logger.error(data);
-		String name = "";
-		if (data.toString().length() <= 20) {
-			name = data.toString();
-		} else {
-			name = data.toString().substring(0, 10);
-		}
-		
-		test.log(LogStatus.INFO, "Screenshot Taken : " + Utilities.captureScreenshot(driver, name));
-	}
-	public void printFailureLogAndReport(ExtentTest test, Logger logger, String data) {
-		if (test != null)
-			test.log(LogStatus.FAIL, data);
-		if (logger != null)
-			logger.error(data);
-		String name = "";
-		if (data.toString().length() <= 20) {
-			name = data.toString();
-		} else {
-			name = data.toString().substring(0, 10);
-		}
-		
-		test.log(LogStatus.INFO, "Screenshot Taken : " + Utilities.captureScreenshot(driver, name));
 	}
 
-		/***
+	public void printFailureLogAndReport(Logger logger, String data) {
+		if(data == null) data = "";
+		if (logger != null)
+			logger.error(data);
+		String name = "";
+		if (data.toString().length() <= 20) {
+			name = data.toString();
+		} else {
+			name = data.toString().substring(0, 10);
+		}
+		reportFailureCreation("fail", StringEscapeUtils.escapeJava(data), Utilities.captureScreenshot(driver, name));
+	}
+
+	/***
 	 * Fail status for Desktop Application Reoport
 	 * 
 	 * @param test
 	 * @param logger
 	 * @param data
 	 */
-	
-	public void printFailureLogAndReportDesktop(ExtentTest test, Logger logger, String data) {
-		if (test != null)
-			test.log(LogStatus.FAIL, data);
+
+	public void printFailureLogAndReportDesktop(Logger logger, String data) {
 		if (logger != null)
 			logger.error(data);
 		String name = "";
+
 		if (data.toString().length() <= 20) {
 			name = data.toString();
 		} else {
 			name = data.toString().substring(0, 10);
 		}
-		//test.log(LogStatus.INFO, "Screenshot Taken : " + Utilities.captureScreenshotDesktopApplication(winiumDriver, name));
+		reportFailureCreation("fail", StringEscapeUtils.escapeJava(data),Utilities.captureScreenshotDesktopApplication(winiumDriver, name));
+
+	}
+
+	public void printInfoLogAndReport(Logger logger, String data) {
+		logger.info(data);
+		reportCreation("info", data);
+		//GlobalData.primaryInfoData(conObj);
+	}
+
+	
+	public void reportHeadersCreation(String result, String data) {
+		JSONObject jsonObject = new JSONObject();
+		jsonObject.put("result_type", "screen");
+		jsonObject.put("text", data);
+		jsonArray.put(jsonObject);
+		//GlobalData.primaryInfoData(conObj);
 	}
 	
-
-	public void printInfoLogAndReport(ExtentTest test, Logger logger, String data) {
-		logger.info(data);
-		test.log(LogStatus.INFO, data);
+	
+	public void reportCreation(String result, String data) {
+		JSONObject jsonObject = new JSONObject();
+		jsonObject.put("result_type", result);
+		jsonObject.put("text", data);
+		jsonArray.put(jsonObject);
+		//GlobalData.primaryInfoData(conObj);
 	}
 
+	public void reportFailureCreation(String result, String data, String image) {
+		JSONObject jsonObject = new JSONObject();
+		jsonObject.put("result_type", result);
+		jsonObject.put("text", data);
+		jsonObject.put("screenshot", image);
+		jsonArray.put(jsonObject);
+	}
+	
 	//============= End Report ===============
 	
 	public void tearDown(ExtentReports reports, ExtentTest test) throws Exception {
@@ -413,12 +475,12 @@ public class BaseClass {
 
 		Actions action = new Actions(webDriver);
 		action.moveToElement(element).build().perform();
+		
 		// action.moveToElement(we).moveToElement(driver.findElement(By.xpath(elementClickXpath))).click().build().perform();
 	}
 
 	// window
 	String parentHandle = "";
-
 	public void windowHandle(WebDriver webDriver) {
 		parentHandle = webDriver.getWindowHandle();
 		Set<String> handles = webDriver.getWindowHandles();
@@ -435,13 +497,31 @@ public class BaseClass {
 	}
 
 	// upload a file
-	public void uploadFile(String name, String xpath) {
-		try {	
+	public void uploadFile(String path, String xpath) {
+		/*try {	
 			WebElement element = waitForExpectedElement(driver,By.xpath(xpath));	
 			element.sendKeys(name);
 		} catch (Exception e) {
 			e.getMessage();
-		}
+		}*/
+		
+		try {
+	        //Setting clipboard with file location
+			StringSelection selection = new StringSelection(path);
+			Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+			clipboard.setContents(selection, selection);
+	        //native key strokes for CTRL, V and ENTER keys
+	        Robot robot = new Robot();
+
+	        robot.keyPress(KeyEvent.VK_CONTROL);
+	        robot.keyPress(KeyEvent.VK_V);
+	        robot.keyRelease(KeyEvent.VK_V);
+	        robot.keyRelease(KeyEvent.VK_CONTROL);
+	        robot.keyPress(KeyEvent.VK_ENTER);
+	        robot.keyRelease(KeyEvent.VK_ENTER);
+	    } catch (Exception exp) {
+	        exp.printStackTrace();
+	    }
 	}
 
 	// Dropdown
@@ -514,7 +594,7 @@ public class BaseClass {
 			String alertMessage = driver.switchTo().alert().getText();
 			System.out.println(alertMessage);
 			Thread.sleep(5000);
-			if(isAlertAccept) {
+			if (isAlertAccept) {
 				alert.accept();
 			} else {
 				alert.dismiss();
@@ -526,17 +606,13 @@ public class BaseClass {
 	
 	
 	public boolean isElementPresent(WebElement e) {
-	    boolean flag = true;
 	    try {
-	        e.isDisplayed();
-	        flag = true;
-	        isElementDispalyed = true;
+	        boolean isDisplayed = e.isDisplayed();
+	        isElementDispalyed = isDisplayed;
 	    } catch (Exception exception) {
-	        flag = false;
-	        isElementDispalyed = false;
-	        
+	        isElementDispalyed = false;      
 	    }
-	    return flag;
+	    return isElementDispalyed;
 	}
 	
 	public boolean skipifElementisNotDisplayed() {

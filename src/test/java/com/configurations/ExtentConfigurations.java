@@ -1,11 +1,14 @@
 package com.configurations;
 
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 import com.relevantcodes.extentreports.ExtentReports;
 
@@ -19,6 +22,11 @@ public class ExtentConfigurations {
 	public static ExtentReports getExtentInstance(String reportsPath, String projectPath, String reportName) {
 		
 		if (reports == null) {
+			try {
+			Files.deleteIfExists(Paths.get(reportsPath));
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 			String environmentVariable = System.getProperty("user.dir");
 			reports = new ExtentReports(reportsPath, false);
 			String extentReportConfigFile = customizeTestngConfigFile(reportName.toUpperCase()); 
@@ -67,7 +75,7 @@ public class ExtentConfigurations {
 				+ "    <documentTitle>" + reportName + "</documentTitle>\r\n" 
 				+ "\r\n"
 				+ "    <!-- report name - displayed at top-nav -->\r\n"
-				+ "    <reportName>DevRabbit - </reportName>\r\n" + "\r\n"
+				+ "    <reportName>Quality Fusion - </reportName>\r\n" + "\r\n"
 				+ "    <!-- report headline - displayed at top-nav, after reportHeadline -->\r\n"
 				+ "    <reportHeadline>TEST AUTOMATION FRAMEWORK</reportHeadline>\r\n" + "\r\n"
 				+ "    <!-- global date format override -->\r\n" 

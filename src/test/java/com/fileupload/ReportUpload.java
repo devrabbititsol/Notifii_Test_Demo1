@@ -1,13 +1,31 @@
 package com.fileupload;
 
 import java.io.BufferedReader;
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileReader;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
+
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.testng.annotations.AfterSuite;
-import com.configurations.*;
+
+import com.configurations.GlobalData;
 import com.restassured.services.ReportPaths;
 import com.utilities.BaseClass;
+import com.utilities.Utilities;
 
 @SuppressWarnings("unused")
 public class ReportUpload extends BaseClass {
@@ -28,48 +46,75 @@ public class ReportUpload extends BaseClass {
 	 * @moduleDescription
 	 */
 	
+
+	public void call() {
+		System.out.println(GlobalData.getReportData());
+		System.out.println("PrimaryInfo:" + GlobalData.getPrimaryInfo());
+	}
+	
 	@AfterSuite
-	public void uploadFile() throws Exception {
-//		Class<?> c = Class.forName(primaryInfo);
-//		String primaryInfoObject = (String) c.getField("primaryInfo").get(c.getSuperclass().getName());
-		System.out.println("primary info : " + Constants.PRIMARY_INFO);
+	public void uploadReport() throws Exception {
+	
 		try {
-			JSONObject primaryInfoObj = new JSONObject(Constants.PRIMARY_INFO);
+			System.out.println(GlobalData.getReportData());
+			JSONObject primaryInfoObj = new JSONObject(GlobalData.getPrimaryInfo());
 			boolean is_web = primaryInfoObj.optBoolean("is_web");
+			boolean isDesktopAutomation = primaryInfoObj.optBoolean("is_Desktop_Automation");
 			String mobile = primaryInfoObj.optString("mobile_platform");
 			String moduleDescription = primaryInfoObj.optString("module_description");
-			
-			if(mobile.equalsIgnoreCase("Android") || mobile.equalsIgnoreCase("iOS")) {
-				reportsPath = projectPath + File.separator + "MobileReports" + File.separator + ReportPaths.reportPathName;	
-				//resultCount = (Constants.TOTAL_TC - Constants.TOTAL_TC_FAILED) + " PASS / " + Constants.TOTAL_TC_FAILED + " FAIL";
-				resultCount  = getTestcasesFailCount(reportsPath);
-				datasetResult =  getDatasetsResult(reportsPath);
-				reportstatus = "";		
-			} else if(is_web) {
-				reportsPath = projectPath + File.separator + "WebReports" + File.separator + ReportPaths.reportPathName;	
-				resultCount  = getTestcasesFailCount(reportsPath);
-				datasetResult =  getDatasetsResult(reportsPath);
-				//resultCount = (Constants.TOTAL_TC - Constants.TOTAL_TC_FAILED) + " PASS / " + Constants.TOTAL_TC_FAILED + " FAIL";
-				reportstatus = "";
-			} else {
-				resultCount = ExtentConfigurations.getDatasetResultCount();
-				reportstatus = Constants.testName;
-				datasetResult =  getDatasetsResult(reportsPath);
-			}
-			
 			//System.err.println(Constants.testName);
+			String moduleId = primaryInfoObj.optString("module_id");
+			String userId = primaryInfoObj.optString("user_id");
+			String executedUserId = primaryInfoObj.optString("executed_user_id");
+			long startExecutionTime = GlobalData.getStartTime();
+			long endExecutionTime = GlobalData.getEndTime();
 			String client_timezoneId = primaryInfoObj.optString("client_timezone_id");
 			String report_upload_url = primaryInfoObj.optString("report_upload_url");
 			String testcaseId = primaryInfoObj.optString("testcase_id");
 			String datasetId = primaryInfoObj.optString("testcase_id");
-			String moduleId = primaryInfoObj.optString("module_id");
 			String subModuleId = primaryInfoObj.isNull("sub_module_id") ? null : primaryInfoObj.optString("sub_module_id");
 			String testsetId = primaryInfoObj.optString("testset_id").equals("0") ? "" : primaryInfoObj.optString("testset_id");
-			String userId = primaryInfoObj.optString("user_id");
-		    String executedUserId = primaryInfoObj.optString("executed_user_id");
-			System.out.println("testcaseid" + testcaseId + ",\nmodule_id" + moduleId + ",\ntestset_id" + testsetId
-					+ ",\nuser_id" + userId + ",\nresult" + resultCount + ",\nreportStatus" + Constants.testName);
-			new FileUploaderClient().uploadFile(report_upload_url, reportsPath, userId,executedUserId, testcaseId, testsetId, moduleId, subModuleId, is_web, resultCount, Constants.testName, mobile, client_timezoneId,datasetResult);
+			String testsetName = (primaryInfoObj.optString("testset_name") == null || primaryInfoObj.optString("testset_name").equals("null") || primaryInfoObj.optString("testset_name").isEmpty()) ? "" : primaryInfoObj.optString("testset_name");
+			JSONArray testcasesArray = GlobalData.getReportData();
+			JSONObject primaryInfo = new JSONObject();
+			primaryInfo.put("testset_name", testsetName);
+			//String elapsedTime = Utilities.getElapsedTime(reportPath);
+			//MultipartUtility multipart = new MultipartUtility(reportUploadURL, charset);
+			primaryInfo.put("user_id", userId);
+			primaryInfo.put("executed_user_id", executedUserId);
+			if (!testsetId.isEmpty()) {
+				primaryInfo.put("testset_id", testsetId);
+			} else {
+				primaryInfo.put("testcase_id", testcaseId);
+			}
+			 
+			if(mobile != null && (mobile.equalsIgnoreCase("Android")||mobile.equalsIgnoreCase("iOS"))) {
+				primaryInfo.put("report_type", mobile);
+			} else if(isDesktopAutomation) {
+				primaryInfo.put("report_type", "winium");
+			} else {
+				primaryInfo.put("report_type", is_web ? "web" : "api");
+			}
+			
+			primaryInfo.put("module_id", (subModuleId == null || subModuleId.isEmpty() || subModuleId.equals("0")) ? moduleId : subModuleId);
+			//primaryInfo.put("report_result", result);
+			//primaryInfo.put("dataset_result", datasetResult);
+			primaryInfo.put("start_time", String.valueOf(startExecutionTime));
+			primaryInfo.put("end_time", String.valueOf(endExecutionTime));
+			
+			long elapsedtime = startExecutionTime- endExecutionTime;
+			primaryInfo.put("execution_time", String.valueOf(elapsedtime));
+			//primaryInfo.put("report_status", reportstatus);
+			primaryInfo.put("client_time_zone_id", client_timezoneId);
+			//System.out.println("client_time_zone_id"+  client_timezoneId);
+			//primaryInfo.put("report_data", GlobalData.getReportData().toString());
+			primaryInfo.put("testcases_result", testcasesArray);
+			
+			System.out.println(primaryInfo.toString());
+			
+			doSaveElementsToServer(report_upload_url, primaryInfo.toString());
+			
+			//new FileUploaderClient().uploadFile(report_upload_url, reportsPath, userId,executedUserId, testcaseId, testsetId, moduleId, subModuleId, is_web, resultCount, GlobalData.getReportData().toString(), mobile, client_timezoneId,datasetResult,false, startExecutionTime,endExecutionTime);
 			
 			
 		} catch (Exception e) {
@@ -77,87 +122,82 @@ public class ReportUpload extends BaseClass {
 		}
 	}
 	
-	private String getTestcasesFailCount(String filePath){
-		int passcount = 0;
-		int failcount = 0;
-		BufferedReader reader;
-		try {
-			reader = new BufferedReader(new FileReader(filePath));
-			String line = reader.readLine();
-		
-			
-			while (line != null) {
-				if(line.contains("Device Information")) {
-					break;
-				}
-				if(line.contains("test-status label right outline capitalize pass")) {
-					//System.out.println(line);
-					passcount = passcount +1;
-				}
-				if(line.contains("test-status label right outline capitalize fail")) {
-					//System.out.println(line);
-					failcount = failcount +1;
-				}
-				
-				
-				// read next line
-				line = reader.readLine();
-			}
-			//System.out.println(passcount + "fail " +failcount);
-			reader.close();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		
-		return passcount +  " PASS / " + failcount + " FAIL";
-		
-	}
 	
-	private String getDatasetsResult(String filePath){
-		int passcount = 0;
-		int failcount = 0;
-		BufferedReader reader;
-		String result = "";
+	private boolean doSaveElementsToServer(String url, String json) throws Exception {
 		try {
-			//filePath = "/Users/admin/Desktop/FWCode/SmartQE/MobileReports/2019-02-18-03-27-20-418_Report.html";
-			reader = new BufferedReader(new FileReader(filePath));
-			String line = reader.readLine();
-			while (line != null) {
-				if(line.contains("Device Information")) {
-					break;
+			URL obj = new URL(url);
+			System.out.println(url);
+			TrustManager[] trustAllCerts = new TrustManager[] { new X509TrustManager() {
+				public X509Certificate[] getAcceptedIssuers() {
+					return null;
 				}
-				String exactLine = "<span class='test-name'>";
-				if(line.contains(exactLine) && (filePath.contains("MobileReports") || filePath.contains("APIReports"))) {
-					result = result +  ((result.endsWith("Fail") || result.endsWith("Pass")) ? " $ ": "");
-					result = result + line.replace(exactLine,"").replace("</span>", "").replace("\t", "");
-				} else if(line.contains(exactLine) && filePath.contains("WebReports")) {{
-					result = result +  ((result.endsWith("Fail") || result.endsWith("Pass")) ? " $ ": "");
-					result = result +  line.split("class=\"left\">")[1].replaceAll("</span>", "");
+
+				@Override
+				public void checkClientTrusted(X509Certificate[] arg0, String arg1) throws CertificateException {
+					// TODO Auto-generated method stub
+
 				}
-				
+
+				@Override
+				public void checkServerTrusted(X509Certificate[] arg0, String arg1) throws CertificateException {
+					// TODO Auto-generated method stub
+
 				}
+			} };
+
+			// Install the all-trusting trust manager
+			SSLContext sc = SSLContext.getInstance("SSL");
+			sc.init(null, trustAllCerts, new java.security.SecureRandom());
+			HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+
+			// Create all-trusting host name verifier
+			HostnameVerifier allHostsValid = new HostnameVerifier() {
+				public boolean verify(String hostname, SSLSession session) {
+					return true;
+				}
+			};
+			// Install the all-trusting host verifier
+			HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
+			HttpURLConnection con = (HttpURLConnection) obj.openConnection();
 			
-				if(line.contains("test-status label right outline capitalize pass")) {
-					passcount = passcount +1;
-					result = result + " - Pass";
-					//System.err.println(line);
-				}
-				
-				if(line.contains("test-status label right outline capitalize fail")) {
-					result = result + " - Fail";
-				}
-				// read next line
-				line = reader.readLine();
+			con.setRequestMethod("POST");
+			con.setRequestProperty("Content-Type", "application/json");
+			con.setConnectTimeout(200000);
+			con.setConnectTimeout(200000);
+			con.setDoOutput(true);
+			OutputStream os = con.getOutputStream();
+			DataOutputStream wr = new DataOutputStream(os);
+			byte[] isoString = json.getBytes("UTF-8");
+			
+			wr.write(isoString, 0, isoString.length);
+			// wr.writeBytes(json);
+			wr.flush();
+			wr.close();
+			os.close();
+			con.connect();
+			int responseCode = con.getResponseCode();
+			System.out.println("Response Code : " + responseCode);
+			BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+			String inputLine;
+			StringBuffer response = new StringBuffer();
+			while ((inputLine = in.readLine()) != null) {
+				response.append(inputLine);
 			}
-			//System.out.println(passcount + "fail " +failcount);
-			reader.close();
-			System.err.println("datasetResult" + result);
+			in.close();
+
+			System.out.println(response.toString());
+
+			JSONObject jsonObject = new JSONObject(response.toString());
+			if (jsonObject.has("status") && !jsonObject.getString("status").equalsIgnoreCase("SUCCESS")) {
+				System.out.println("Report Exception " + jsonObject.optString("message"));
+				return false;
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
+			System.out.println(e.getLocalizedMessage());
+			return false;
 		}
-		
-		return result;
-		
+		return true;
 	}
 
 }

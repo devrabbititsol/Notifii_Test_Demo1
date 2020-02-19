@@ -1,25 +1,19 @@
 package com.utilities;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Scanner;
-import java.util.zip.ZipOutputStream;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
-import org.apache.tools.zip.ZipEntry;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
-
-import com.configurations.Constants;
+import org.openqa.selenium.winium.WiniumDriver;
 
 public class Utilities {
 
@@ -32,10 +26,38 @@ public class Utilities {
 		Date dt = new Date();
 		String html = "";
 		try {
-			if(Constants.IS_TESTCASE && Constants.iS_WEB || !Constants.iS_WEB) {
+			/*if(Constants.IS_TESTCASE && Constants.iS_WEB || !Constants.iS_WEB) {
 				Constants.TOTAL_TC_FAILED = Constants.TOTAL_TC_FAILED + 1;
 				Constants.IS_TESTCASE = false;
-			} 
+			} */
+			
+			System.out.println(dateFormat.format(dt));
+			TakesScreenshot ts = (TakesScreenshot) driver;
+			File source = ts.getScreenshotAs(OutputType.FILE);
+			html = covertScreenshotToBase64(source , screenShotName);
+			path = System.getProperty("user.dir") + File.separator + "screenshots";
+			createDirectory(path);
+			FileUtils.copyFile(source, new File(path + File.separator  + dateFormat.format(dt) + "_" + screenShotName + ".png"));
+			System.out.println("screenshot is taken");
+
+		} catch (Exception e) {
+			System.out.println("exception while taking screenshot" + e.getMessage());
+		}
+		
+		return html;
+	}
+	
+
+	public static String captureScreenshotDesktopApplication(WiniumDriver driver, String screenShotName) {
+		String path = "";
+		DateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy HH-mm-ss");
+		Date dt = new Date();
+		String html = "";
+		try {
+			/*if(Constants.IS_TESTCASE && Constants.iS_WEB || !Constants.iS_WEB) {
+				Constants.TOTAL_TC_FAILED = Constants.TOTAL_TC_FAILED + 1;
+				Constants.IS_TESTCASE = false;
+			} */
 			
 			System.out.println(dateFormat.format(dt));
 			TakesScreenshot ts = (TakesScreenshot) driver;
@@ -54,6 +76,9 @@ public class Utilities {
 	}
 
 	
+	
+
+	
 	@SuppressWarnings("resource")
 	public static String covertScreenshotToBase64(File file, String name) {
 		try {		
@@ -67,21 +92,22 @@ public class Utilities {
 		}
 		return null;
 	}
-	
+	@SuppressWarnings("unused")
 	public static String doImageClickAnimation(String img, String screenName) {
+		
 		int width = 500;
 		int height = 250;
 		if(isMobile) {
 			width = 400;
 			height = 700;
 		} 
-		String image = "<script src=\"http://183.82.106.91:8030/TAF_Automation/resources/js/reportalert.js\"></script><img onclick='clickImage(this)' src=\"data:image/png;base64, " + img + "\" alt=\""+ screenName +"\" width=\"" + width + "\" height=\"" + height + "\"/>";
-		return image;
+		//String image = "<img onclick='clickImage(this)' src=\"data:image/png;base64, " + img + "\" alt=\""+ screenName +"\" width=\"" + width + "\" height=\"" + height + "\"/>";
+		return (img);
 		
 	}
 	
 	// make zip of reports
-	public static void zip(String filepath) {
+	/*public static void zip(String filepath) {
 		try {
 			File inFolder = new File(filepath);
 			File outFolder = new File("Reports.zip");
@@ -103,7 +129,7 @@ public class Utilities {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-	}
+	}*/
 	
 	public static boolean createDirectory(String directory) {
 		File fileDirectory = new File(directory);
@@ -115,7 +141,7 @@ public class Utilities {
 	}
 
 	@SuppressWarnings("resource")
-	public static String getElapsedTime(String filePath) {
+	public static String getElapsedTime1(String filePath) {
 		File file = new File(filePath);
 		Scanner in = null;
 		try {
