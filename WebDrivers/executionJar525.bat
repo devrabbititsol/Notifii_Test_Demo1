@@ -1,0 +1,1 @@
+start /b /high java -jar D:\FrameworkCode\QualityFusionQE\WebDrivers\code.jar "D:\FrameworkCode\QualityFusionQE\WebDrivers\jsonData.json"

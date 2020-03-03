@@ -311,7 +311,7 @@ public class BaseClass {
 	public void setTestcaseName(String browserName, String tescaseName) {
 		String chromeURL = "chrome";
 		String mozillaURL = "mozilla";
-		String ieURL =  "ie";
+		String ieURL = "ie";
 		String safariURL = "safari";
 		String finalURL = "";
 		if (browserName.equalsIgnoreCase("chrome")) {
