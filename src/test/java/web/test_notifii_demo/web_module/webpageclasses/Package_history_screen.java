@@ -10,7 +10,7 @@ import com.relevantcodes.extentreports.ExtentTest;
 @SuppressWarnings("unused")
 public class Package_history_screen extends BaseClass {
 	
-	public static String primaryInfo  = "{\"user_id\":7,\"executed_user_id\":7,\"is_generate\":false,\"is_execute\":false,\"is_web\":true,\"project_url\":\"https://www.devrabbitdev.com/login.php\",\"report_upload_url\":\"https://smartqe.io:443/UploadReportFile\",\"project_name\":\"test_notifii_demo\",\"project_description\":\"desc\",\"project_id\":447,\"module_name\":\"web_module\",\"module_description\":\"desc\",\"sub_module_id\":0,\"module_id\":761,\"testcase_name\":\"TC_Notifii_Package\",\"testcase_id\":744,\"testset_id\":0,\"executed_timestamp\":-1545917105,\"browser_type\":\"chrome\",\"testcase_overwrite\":true,\"client_timezone_id\":\"Asia/Calcutta\"}";
+	public static String primaryInfo  = "{\"user_id\":7,\"executed_user_id\":7,\"is_generate\":false,\"is_execute\":false,\"is_web\":true,\"project_url\":\"https://www.devrabbitdev.com/login.php\",\"report_upload_url\":\"https://smartqe.io:443/UploadReportFile\",\"project_name\":\"test_notifii_demo\",\"project_description\":\"desc\",\"project_id\":447,\"module_name\":\"web_module\",\"module_description\":\"desc\",\"sub_module_id\":0,\"module_id\":761,\"testcase_name\":\"TC_Notifii_Package\",\"testcase_id\":744,\"testset_id\":0,\"executed_timestamp\":-1545766007,\"browser_type\":\"chrome\",\"testcase_overwrite\":true,\"client_timezone_id\":\"Asia/Calcutta\"}";
 
 	public static String projectName = "test_notifii_demo";
 	public WebDriver driver;
