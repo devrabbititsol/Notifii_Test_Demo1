@@ -9597,3 +9597,17 @@ Session ID: 5c72938f8148edde11744ae88f4766bc
 2019-05-03 18:40:28,604 - mobile.demoprojectnew.androiddemo.mobiletestclasses.TC_AndroidDemo -INFO - Clicked on Link : Review
 2019-05-03 18:40:55,395 - mobile.demoprojectnew.androiddemo.mobiletestclasses.TC_AndroidDemo -INFO - Clicked on Link : Ok,PostItNow!
 2019-05-03 18:40:58,136 - mobile.demoprojectnew.androiddemo.mobiletestclasses.TC_AndroidDemo -INFO - Label text value is : OK
+2020-03-03 17:34:34,071 - web.test_notifii_demo.web_module.webtestclasses.TC_Notifii_Package -INFO - Entered Username : aptdev
+2020-03-03 17:34:35,273 - web.test_notifii_demo.web_module.webtestclasses.TC_Notifii_Package -INFO - Entered Password : aptdev
+2020-03-03 17:34:37,120 - web.test_notifii_demo.web_module.webtestclasses.TC_Notifii_Package -INFO - Clicked on LogInButton
+2020-03-03 17:34:38,294 - web.test_notifii_demo.web_module.webtestclasses.TC_Notifii_Package -INFO - Entered Tracking_number : 3652541
+2020-03-03 17:34:39,455 - web.test_notifii_demo.web_module.webtestclasses.TC_Notifii_Package -INFO - Text is displayed as : SearchLink
+2020-03-03 17:34:40,653 - web.test_notifii_demo.web_module.webtestclasses.TC_Notifii_Package -INFO - Entered Select2results1 : chandra
+2020-03-03 17:34:43,933 - web.test_notifii_demo.web_module.webtestclasses.TC_Notifii_Package -INFO - Text is displayed as : Select_nameLink
+2020-03-03 17:34:45,048 - web.test_notifii_demo.web_module.webtestclasses.TC_Notifii_Package -INFO - Entered Custom_message : Test
+2020-03-03 17:34:46,572 - web.test_notifii_demo.web_module.webtestclasses.TC_Notifii_Package -INFO - Clicked on LogThisPackageInButton
+2020-03-03 17:34:47,708 - web.test_notifii_demo.web_module.webtestclasses.TC_Notifii_Package -INFO - Text is displayed as : PackagesLink
+2020-03-03 17:34:49,267 - web.test_notifii_demo.web_module.webtestclasses.TC_Notifii_Package -INFO - Package History
+2020-03-03 17:34:49,268 - web.test_notifii_demo.web_module.webtestclasses.TC_Notifii_Package -INFO - Package History
+2020-03-03 17:34:50,700 - web.test_notifii_demo.web_module.webtestclasses.TC_Notifii_Package -INFO - Clicked on Button : Update Package History
+2020-03-03 17:34:50,700 - web.test_notifii_demo.web_module.webtestclasses.TC_Notifii_Package -INFO - Update Package History
